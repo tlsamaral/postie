@@ -34,14 +34,16 @@ Construído sob os princípios rígidos de **Clean Architecture (Ports & Adapter
 ## ✨ Funcionalidades
 
 - 🧠 **Triagem & Roteamento Inteligente com IA:** Classifica a intenção (Bug, Feature Request, Dúvida ou Spam), avalia conformidade de escopo e sugere títulos objetivos e descrições estruturadas em Markdown.
-- 🛡️ **Catálogo Declarativo com Guardrails Estritos:** Delimita fronteiras de escopo (*Scope Boundaries*) e permissões de ação por projeto (`create_issue`, `update_priority`, `comment`, `auto_close`).
-- 🔍 **Deduplicação Semântica de Issues:** Verifica tickets abertos antes de criar novas ocorrências, evitando poluição e redundância no backlog.
+- 👁️ **Visão Multimodal & OCR de Evidências:** Analisa prints, capturas de tela e fotos de erros anexados via Gemini 2.5 Flash, transcrevendo detalhes técnicos visuais para a issue.
+- 🎯 **Assistente Interativo de Seleção de Projetos:** Comando CLI interativo (`pnpm select:projects`) para listar repositórios da sua conta e organizações, permitindo escolher com barra de espaço quais projetos devem receber chamados.
+- 🛡️ **Catálogo Declarativo & Dinâmico com Guardrails:** Delimita fronteiras de escopo (*Scope Boundaries*) e permissões de ação por projeto (`create_issue`, `update_priority`, `comment`, `auto_close`). Suporta configuração centralizada em `projects.catalog.json` ou distribuída via `.github/postie.json` nos repositórios alvo.
+- 🔍 **Deduplicação Semântica com Validação por IA:** Usa normalização de termos em português, remoção de stopwords de domínio e verificação semântica pelo Gemini para agrupar relatos repetidos sem mesclar problemas técnicos distintos.
 - 📈 **Escalonamento Dinâmico de Prioridade:** Ajusta a criticidade do chamado de acordo com a reincidência de relatos de usuários (ex: 3+ relatos elevam para `HIGH`, 5+ para `CRITICAL`).
 - 🔌 **Provedores Intercambiáveis:**
   - **Email:** Microsoft Graph API (OAuth2 / App Secret) e IMAP padrão.
   - **IA:** Google Gemini (`@google/genai` com `responseSchema` estrito) e OpenAI.
   - **Issue Tracker:** GitHub Issues via Octokit (extensível para Jira, GitLab, Linear).
-- 📧 **Notificações Automáticas:** Envia emails aos mantenedores e equipes responsáveis com link direto para o card criado/atualizado e justificativa da IA.
+- 📧 **Notificações Automáticas e Resilientes:** Envia emails aos mantenedores com link direto para o card criado/atualizado e justificativa da IA.
 - 🐳 **Pronto para Produção:** Multi-stage Dockerfile enxuto com execução como usuário não-root.
 
 ---
@@ -98,7 +100,8 @@ postie/
 ├── src/
 │   ├── config/                      # Configurações e variáveis de ambiente
 │   │   ├── env.ts                   # Validação Zod de schema do .env
-│   │   └── projects.registry.ts     # Catálogo declarativo e guardrails de projetos
+│   │   ├── projects.catalog.json    # Catálogo dinâmico de projetos monitorados
+│   │   └── projects.registry.ts     # Loader e fallback de guardrails de projetos
 │   ├── domain/                      # Camada de Domínio (independente de libs externas)
 │   │   ├── entities/                # Entidades fundamentais
 │   │   │   ├── email-message.entity.ts
@@ -121,6 +124,12 @@ postie/
 │   │   ├── tracker/                 # Issue Trackers (GitHub Octokit)
 │   │   └── notifications/           # Notificadores de Alerta
 │   └── main.ts                      # Composition Root e loop de polling
+├── scripts/                         # Ferramentas auxiliares e automações
+│   ├── select-projects.ts           # Assistente interativo para escolha de repositórios
+│   └── sync-projects.ts             # Sincronização por topic do GitHub para CI/CD
+├── .github/
+│   ├── workflows/sync-projects.yml  # Pipeline diária de autodescoberta de projetos
+│   └── postie.example.json          # Modelo de configuração para os repositórios alvo
 ├── tests/                           # Suíte de testes unitários com Vitest
 ├── docker-compose.yml
 ├── Dockerfile
@@ -317,6 +326,8 @@ docker run -d --name postie-agent --env-file .env postie-agent:latest
 | Script | Descrição |
 |---|---|
 | `pnpm dev` | Executa o agente em modo watch via `tsx` |
+| `pnpm select:projects` | Assistente interativo no terminal para listar e selecionar repositórios do catálogo |
+| `pnpm sync:projects` | Sincroniza projetos do GitHub automaticamente via topic `postie-target` |
 | `pnpm build` | Compila o projeto com `tsup` gerando bundle otimizado em `dist/` |
 | `pnpm start` | Executa o bundle de produção compilado (`node dist/main.js`) |
 | `pnpm typecheck` | Executa a verificação de tipos estritos do TypeScript (`tsc --noEmit`) |
