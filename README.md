@@ -2,59 +2,61 @@
 
 # 📮 Postie — Ticket Router Agent
 
-**Agente autônomo inteligente de triagem, roteamento e deduplicação de chamados com IA.**
+**Autonomous intelligent ticket triage, routing, and deduplication agent powered by AI.**
+
+[ 🇺🇸 English ](README.md) • [ 🇧🇷 Português ](README.pt-BR.md)
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?logo=typescript)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-20+-green?logo=node.js)](https://nodejs.org/)
-[![Architecture](https://img.shields.io/badge/Architecture-Hexagonal%20%2F%20Ports%20%26%20Adapters-orange)](#-arquitetura)
+[![Architecture](https://img.shields.io/badge/Architecture-Hexagonal%20%2F%20Ports%20%26%20Adapters-orange)](#-architecture)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker)](https://www.docker.com/)
 [![License: ISC](https://img.shields.io/badge/License-ISC-yellow.svg)](LICENSE)
 
-[Visão Geral](#-visão-geral) •
-[Funcionalidades](#-funcionalidades) •
-[Arquitetura](#-arquitetura) •
-[Começando](#-começando) •
-[Configuração](#-configuração) •
-[Como Funciona](#-como-funciona) •
-[Testes](#-testes) •
-[Deploy](#-deploy-com-docker)
+[Overview](#-overview) •
+[Features](#-features) •
+[Architecture](#-architecture) •
+[Getting Started](#-getting-started) •
+[Configuration](#-configuration) •
+[How It Works](#-how-it-works) •
+[Testing](#-testing) •
+[Deploy](#-docker-deployment)
 
 </div>
 
 ---
 
-## 🌟 Visão Geral
+## 🌟 Overview
 
-O **Postie (Ticket Router Agent)** é um serviço autônomo projetado para monitorar caixas de entrada de email corporativas (Microsoft 365 / Graph API ou IMAP), higienizar as mensagens, analisá-las via Large Language Models (Google Gemini 2.5 Flash ou OpenAI GPT-4o) e rotear os tickets para os repositórios e projetos correspondentes no **GitHub Issues**.
+**Postie (Ticket Router Agent)** is an autonomous backend service designed to monitor corporate inboxes (Microsoft 365 / Graph API or standard IMAP), sanitize incoming emails, evaluate them via Large Language Models (Google Gemini 2.5 Flash or OpenAI GPT-4o), and route tickets directly to target repositories in **GitHub Issues**.
 
-Construído sob os princípios rígidos de **Clean Architecture (Ports & Adapters)**, o Postie assegura que qualquer serviço externo (provedor de email, modelo de IA ou issue tracker) seja 100% intercambiável sem alterar as regras de negócio.
-
----
-
-## ✨ Funcionalidades
-
-- 🧠 **Triagem & Roteamento Inteligente com IA:** Classifica a intenção (Bug, Feature Request, Dúvida ou Spam), avalia conformidade de escopo e sugere títulos objetivos e descrições estruturadas em Markdown.
-- 👁️ **Visão Multimodal & OCR de Evidências:** Analisa prints, capturas de tela e fotos de erros anexados via Gemini 2.5 Flash, transcrevendo detalhes técnicos visuais para a issue.
-- 🎯 **Assistente Interativo de Seleção de Projetos:** Comando CLI interativo (`pnpm select:projects`) para listar repositórios da sua conta e organizações, permitindo escolher com barra de espaço quais projetos devem receber chamados.
-- 🛡️ **Catálogo Declarativo & Dinâmico com Guardrails:** Delimita fronteiras de escopo (*Scope Boundaries*) e permissões de ação por projeto (`create_issue`, `update_priority`, `comment`, `auto_close`). Suporta configuração centralizada em `projects.catalog.json` ou distribuída via `.github/postie.json` nos repositórios alvo.
-- 🔍 **Deduplicação Semântica com Validação por IA:** Usa normalização de termos em português, remoção de stopwords de domínio e verificação semântica pelo Gemini para agrupar relatos repetidos sem mesclar problemas técnicos distintos.
-- 📈 **Escalonamento Dinâmico de Prioridade:** Ajusta a criticidade do chamado de acordo com a reincidência de relatos de usuários (ex: 3+ relatos elevam para `HIGH`, 5+ para `CRITICAL`).
-- 🔌 **Provedores Intercambiáveis:**
-  - **Email:** Microsoft Graph API (OAuth2 / App Secret) e IMAP padrão.
-  - **IA:** Google Gemini (`@google/genai` com `responseSchema` estrito) e OpenAI.
-  - **Issue Tracker:** GitHub Issues via Octokit (extensível para Jira, GitLab, Linear).
-- 📧 **Notificações Automáticas e Resilientes:** Envia emails aos mantenedores com link direto para o card criado/atualizado e justificativa da IA.
-- 🐳 **Pronto para Produção:** Multi-stage Dockerfile enxuto com execução como usuário não-root.
+Built strictly following **Clean Architecture (Hexagonal / Ports & Adapters)** principles, Postie ensures that external services (email providers, AI models, issue trackers) are 100% interchangeable without modifying domain business rules.
 
 ---
 
-## 🏗️ Arquitetura
+## ✨ Features
 
-O projeto adota **Hexagonal Architecture (Ports & Adapters)**:
+- 🧠 **Intelligent AI Triage & Routing:** Classifies intent (Bug, Feature Request, Question, or Spam), evaluates project scope boundaries, and generates structured issue titles and Markdown descriptions.
+- 👁️ **Multimodal Vision & Evidence OCR:** Analyzes error screenshots and attached images via Gemini 2.5 Flash, transcribing visual technical evidence into the issue body.
+- 🎯 **Interactive Project Selector:** Terminal wizard (`pnpm select:projects`) to browse user and organization repositories and interactively select which projects should receive tickets.
+- 🛡️ **Declarative & Dynamic Catalog with Guardrails:** Defines scope boundaries and allowed actions per project (`create_issue`, `update_priority`, `comment`, `auto_close`). Supports central configuration in `projects.catalog.json` or distributed via `.github/postie.json` in target repositories.
+- 🔍 **AI-Verified Semantic Deduplication:** Uses Portuguese/English stemming, domain stopword filtering, and Gemini semantic verification to group reoccurring incidents without merging distinct technical problems.
+- 📈 **Dynamic Priority Escalation:** Automatically elevates ticket severity based on incident frequency (e.g., 3+ reports escalate to `HIGH`, 5+ to `CRITICAL`).
+- 🔌 **Interchangeable Providers:**
+  - **Email:** Microsoft Graph API (OAuth2 / App Secret) and standard IMAP.
+  - **AI:** Google Gemini (`@google/genai` with strict `responseSchema`) and OpenAI.
+  - **Issue Tracker:** GitHub Issues via Octokit (extensible to Jira, GitLab, Linear).
+- 📧 **Automated & Resilient Notifications:** Sends alert emails to maintainers with direct links to the created/updated issue and AI reasoning.
+- 🐳 **Production-Ready:** Lean multi-stage Dockerfile running under a secure non-root user.
+
+---
+
+## 🏗️ Architecture
+
+The project follows the **Hexagonal Architecture (Ports & Adapters)** pattern:
 
 ```mermaid
 flowchart TB
-    subgraph Drivers ["Driven Adapters (Entradas)"]
+    subgraph Drivers ["Driven Adapters (Inputs)"]
         MSGraphWatcher["Microsoft Graph Poller / Webhook"]
         IMAPWatcher["IMAP Poller Adapter"]
     end
@@ -79,7 +81,7 @@ flowchart TB
         end
     end
 
-    subgraph Driven ["Output Adapters (Saídas)"]
+    subgraph Driven ["Output Adapters (Outputs)"]
         MSGraphClient["Microsoft Graph SDK"]
         GeminiAdapter["Gemini 2.5 Flash"]
         OpenAIAdapter["OpenAI GPT-4o"]
@@ -93,44 +95,44 @@ flowchart TB
     PortsOut -.-> Driven
 ```
 
-### Estrutura de Pastas
+### Directory Structure
 
 ```bash
 postie/
 ├── src/
-│   ├── config/                      # Configurações e variáveis de ambiente
-│   │   ├── env.ts                   # Validação Zod de schema do .env
-│   │   ├── projects.catalog.json    # Catálogo dinâmico de projetos monitorados
-│   │   └── projects.registry.ts     # Loader e fallback de guardrails de projetos
-│   ├── domain/                      # Camada de Domínio (independente de libs externas)
-│   │   ├── entities/                # Entidades fundamentais
+│   ├── config/                      # Environment variables and configurations
+│   │   ├── env.ts                   # Zod schema validation for .env
+│   │   ├── projects.catalog.json    # Dynamic catalog of monitored projects
+│   │   └── projects.registry.ts     # Loader and fallback registry
+│   ├── domain/                      # Domain layer (pure business logic)
+│   │   ├── entities/                # Core domain entities
 │   │   │   ├── email-message.entity.ts
 │   │   │   ├── project-definition.entity.ts
 │   │   │   └── routing-decision.entity.ts
-│   │   ├── logic/                   # Regras de negócio puras
-│   │   │   └── priority-engine.ts   # Motor de escalonamento dinâmico
-│   │   └── ports/                   # Contratos de interfaces (Ports)
+│   │   ├── logic/                   # Pure business algorithms
+│   │   │   └── priority-engine.ts   # Dynamic priority escalation calculator
+│   │   └── ports/                   # Port interfaces (Contracts)
 │   │       ├── email-reader.port.ts
 │   │       ├── email-sender.port.ts
 │   │       ├── ai-router.port.ts
 │   │       └── issue-tracker.port.ts
-│   ├── application/                 # Casos de Uso (Orquestração da aplicação)
+│   ├── application/                 # Use cases orchestration
 │   │   └── use-cases/
 │   │       ├── process-incoming-email.use-case.ts
 │   │       └── deduplicate-and-sync-issue.use-case.ts
-│   ├── infrastructure/              # Adaptadores externos (Driven Adapters)
-│   │   ├── email/                   # Leitores de Email (MS Graph e IMAP)
-│   │   ├── ai/                      # Roteadores de IA (Gemini e OpenAI)
-│   │   ├── tracker/                 # Issue Trackers (GitHub Octokit)
-│   │   └── notifications/           # Notificadores de Alerta
-│   └── main.ts                      # Composition Root e loop de polling
-├── scripts/                         # Ferramentas auxiliares e automações
-│   ├── select-projects.ts           # Assistente interativo para escolha de repositórios
-│   └── sync-projects.ts             # Sincronização por topic do GitHub para CI/CD
+│   ├── infrastructure/              # External adapters (Driven Adapters)
+│   │   ├── email/                   # Email readers (MS Graph and IMAP)
+│   │   ├── ai/                      # AI routers (Gemini and OpenAI)
+│   │   ├── tracker/                 # Issue trackers (GitHub Octokit)
+│   │   └── notifications/           # Alert notifiers
+│   └── main.ts                      # Composition root & polling loop
+├── scripts/                         # Automation & CLI tools
+│   ├── select-projects.ts           # Interactive terminal project picker
+│   └── sync-projects.ts             # Topic-based auto-discovery script
 ├── .github/
-│   ├── workflows/sync-projects.yml  # Pipeline diária de autodescoberta de projetos
-│   └── postie.example.json          # Modelo de configuração para os repositórios alvo
-├── tests/                           # Suíte de testes unitários com Vitest
+│   ├── workflows/sync-projects.yml  # Automated GitHub Action project sync
+│   └── postie.example.json          # Target repository configuration template
+├── tests/                           # Unit tests with Vitest
 ├── docker-compose.yml
 ├── Dockerfile
 ├── .dockerignore
@@ -141,179 +143,175 @@ postie/
 
 ---
 
-## 🚀 Começando
+## 🚀 Getting Started
 
-### Pré-requisitos
+### Prerequisites
 - [Node.js](https://nodejs.org/) `>= 20.0.0`
-- [pnpm](https://pnpm.io/) `>= 9.0.0` (ou npm / yarn)
-- Token de Acesso Pessoal (PAT) do GitHub com escopo de `repo`
-- Chave de API do Google Gemini ou OpenAI
-- Credenciais de Caixa de Entrada (Microsoft 365 Azure AD ou IMAP)
+- [pnpm](https://pnpm.io/) `>= 9.0.0` (or npm / yarn)
+- GitHub Personal Access Token (PAT) with `repo` scope
+- Google Gemini API Key or OpenAI API Key
+- Email inbox credentials (Microsoft 365 Azure AD or IMAP)
 
-### 1. Clonar o Repositório
+### 1. Clone the Repository
 ```bash
 git clone https://github.com/tlsamaral/postie.git
 cd postie
 ```
 
-### 2. Instalar as Dependências
+### 2. Install Dependencies
 ```bash
 pnpm install
 ```
 
-### 3. Configurar as Variáveis de Ambiente
-Crie um arquivo `.env` a partir do template:
+### 3. Configure Environment Variables
+Copy the template to `.env`:
 ```bash
 cp .env.example .env
 ```
 
-Edite o `.env` com suas credenciais:
+Edit `.env` with your credentials:
 ```dotenv
-# Configurações Gerais
+# General Settings
 NODE_ENV=development
 LOG_LEVEL=info
 
-# Provedor de Email Ativo: 'MS_GRAPH' ou 'IMAP'
+# Active Email Provider: 'MS_GRAPH' or 'IMAP'
 EMAIL_PROVIDER=MS_GRAPH
 
-# Microsoft 365 / Azure AD (Obrigatório se EMAIL_PROVIDER=MS_GRAPH)
+# Microsoft 365 / Azure AD (Required when EMAIL_PROVIDER=MS_GRAPH)
 AZURE_TENANT_ID=00000000-0000-0000-0000-000000000000
 AZURE_CLIENT_ID=00000000-0000-0000-0000-000000000000
-AZURE_CLIENT_SECRET=sua_azure_secret_aqui
-MS_GRAPH_MAILBOX_USER=suporte@empresa.com
+AZURE_CLIENT_SECRET=your_azure_client_secret_value
+MS_GRAPH_MAILBOX_USER=support@company.com
 
-# Provedor de IA: 'GEMINI' ou 'OPENAI'
+# AI Provider: 'GEMINI' or 'OPENAI'
 AI_PROVIDER=GEMINI
 GEMINI_API_KEY=AIzaSy...
 
 # GitHub Issue Tracker
 GITHUB_AUTH_TOKEN=ghp_...
 
-# Frequência de Polling (segundos) e Email de Notificação
+# Polling Interval (seconds) and Alert Email
 POLLING_INTERVAL_SECONDS=60
-ALERT_NOTIFICATION_EMAIL=equipe-dev@empresa.com
+ALERT_NOTIFICATION_EMAIL=dev-team@company.com
 ```
 
-### 4. Executar em Modo de Desenvolvimento
+### 4. Select Target Projects
+Choose which repositories should receive tickets interactively:
+```bash
+pnpm select:projects
+```
+
+### 5. Run in Development Mode
 ```bash
 pnpm dev
 ```
 
 ---
 
-## ⚙️ Configuração
+## ⚙️ Configuration
 
-### 🛡️ Catálogo de Projetos & Guardrails
+### 🛡️ Project Catalog & Guardrails
 
-Os projetos atendidos pelo agente são configurados declarativamente em [`src/config/projects.registry.ts`](src/config/projects.registry.ts).
+Monitored projects are loaded dynamically from [`src/config/projects.catalog.json`](src/config/projects.catalog.json) with fallback to [`src/config/projects.registry.ts`](src/config/projects.registry.ts).
 
-Cada projeto define:
-1. **`scopeBoundaries`**: Instruções determinísticas que orientam a IA sobre o que pertence e o que **NÃO** pertence ao projeto.
-2. **`allowedActions`**: Ações operacionais autorizadas para o agente:
-   - `'create_issue'`: Criação de novo card quando o problema for inédito.
-   - `'update_priority'`: Escalonamento automático de prioridade por volume de ocorrências.
-   - `'comment'`: Adição de comentários com novas ocorrências em issues existentes.
-   - `'auto_close'`: Fechamento automático de issues.
+Each project defines:
+1. **`scopeBoundaries`**: Deterministic prompt rules instructing the AI on what belongs and what does **NOT** belong to the project.
+2. **`allowedActions`**: Operational permissions granted to the agent:
+   - `'create_issue'`: Creates new cards for novel issues.
+   - `'update_priority'`: Automatically escalates priority as occurrences rise.
+   - `'comment'`: Adds recurrence comments to existing issues.
+   - `'auto_close'`: Automated issue resolution.
 
-```typescript
-export const PROJECTS_CATALOG: ProjectDefinition[] = [
+```json
+[
   {
-    id: 'portal-cliente',
-    name: 'Portal do Cliente',
-    description: 'Área logada onde clientes acompanham pedidos e faturas.',
-    scopeBoundaries: [
-      'Pertence: login, segunda via de boleto, status de pedido.',
-      'Não pertence: dúvidas comerciais, negociação de preço.',
+    "id": "unisal-siga",
+    "name": "unisal.siga",
+    "description": "Queue management system, digital signage, and self-service kiosks.",
+    "scopeBoundaries": [
+      "Belongs: Issues, bugs, questions, and enhancements regarding queue management and kiosk tickets.",
+      "Does not belong: Out-of-scope topics, commercial proposals, marketing."
     ],
-    github: {
-      owner: 'minha-organizacao',
-      repo: 'portal-cliente',
+    "github": {
+      "owner": "dev-unisal",
+      "repo": "unisal.siga"
     },
-    allowedActions: ['create_issue', 'update_priority', 'comment'],
-  },
-  {
-    id: 'erp-integrador',
-    name: 'Integrador ERP',
-    description: 'Sincronização de pedidos, estoque e financeiro com o ERP.',
-    scopeBoundaries: [
-      'Pertence: webhooks, conciliação bancária, divergência cadastral.',
-    ],
-    github: {
-      owner: 'minha-organizacao',
-      repo: 'erp-sync-service',
-    },
-    // Limitação de guardrail estrita: apenas cria issues para revisão humana
-    allowedActions: ['create_issue'],
-  },
+    "allowedActions": [
+      "create_issue",
+      "update_priority",
+      "comment"
+    ]
+  }
 ]
 ```
 
 ---
 
-## 🔄 Como Funciona
+## 🔄 How It Works
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Email as Caixa de Entrada (Graph / IMAP)
+    participant Email as Inbox (Graph / IMAP)
     participant Agent as Postie Agent (Main)
-    participant AI as Router IA (Gemini / OpenAI)
+    participant AI as Router AI (Gemini / OpenAI)
     participant Tracker as GitHub Issues
-    participant Team as Notificação (Email)
+    participant Team as Notification (Email)
 
-    Agent->>Email: Busca mensagens não lidas
-    Email-->>Agent: Retorna lista de emails
-    loop Para cada email
-        Agent->>AI: Classifica e avalia escopo
-        alt Fora de Escopo / Spam
+    Agent->>Email: Fetch unread messages
+    Email-->>Agent: Return email list
+    loop For each email
+        Agent->>AI: Classify intent and evaluate scope
+        alt Out of Scope / Spam
             AI-->>Agent: matchedProjectId = null
-            Agent->>Email: Marca como lido / descartado
-        else Pertence a um Projeto
-            AI-->>Agent: matchedProjectId + Metadados + Prioridade
-            Agent->>Tracker: Busca issues abertas no repositório
-            alt Problema Inédito
-                Agent->>Tracker: Cria nova issue com labels e prioridade
-            else Ocorrência Duplicada
-                Agent->>Tracker: Incrementa ocorrências e adiciona comentário
-                Agent->>Tracker: Atualiza prioridade (se habilitado no guardrail)
+            Agent->>Email: Mark as read / discard
+        else Belongs to a Project
+            Agent->>Tracker: Fetch open issues in target repository
+            Agent->>AI: Verify if report is a duplicate of an open issue
+            alt Novel Problem
+                Agent->>Tracker: Create new issue with labels and priority
+            else Duplicate Report (Same Technical Root-Cause)
+                Agent->>Tracker: Increment occurrences and add recurrence comment
+                Agent->>Tracker: Escalate priority (if enabled in guardrails)
             end
-            Agent->>Team: Envia email com resumo e link do card
-            Agent->>Email: Marca email como processado
+            Agent->>Team: Send notification email with issue link
+            Agent->>Email: Mark email as processed
         end
     end
 ```
 
 ---
 
-## 🧪 Testes
+## 🧪 Testing
 
-A suíte de testes unitários foi desenvolvida com [Vitest](https://vitest.dev/), cobrindo validação de esquemas de ambiente, cálculo dinâmico de prioridades, isolamento de guardrails e fluxos de deduplicação:
+Unit test suite developed with [Vitest](https://vitest.dev/), covering environment validation, dynamic priority calculation, guardrail boundaries, and semantic deduplication:
 
 ```bash
-# Executar todos os testes
+# Run all tests
 pnpm test
 
-# Executar testes em modo watch
+# Run tests in watch mode
 pnpm test:watch
 
-# Checagem estática de tipos TypeScript
+# Static TypeScript typecheck
 pnpm typecheck
 ```
 
 ---
 
-## 🐳 Deploy com Docker
+## 🐳 Docker Deployment
 
 ### Via Docker Compose
 ```bash
-# Iniciar o serviço em background com rebuild
+# Start background service with rebuild
 docker compose up -d --build
 
-# Visualizar logs em tempo real
+# Follow logs in real-time
 docker compose logs -f
 ```
 
-### Build Manual da Imagem
+### Manual Container Build
 ```bash
 docker build -t postie-agent:latest .
 docker run -d --name postie-agent --env-file .env postie-agent:latest
@@ -321,33 +319,33 @@ docker run -d --name postie-agent --env-file .env postie-agent:latest
 
 ---
 
-## 🛠️ Scripts Disponíveis
+## 🛠️ Available Scripts
 
-| Script | Descrição |
+| Script | Description |
 |---|---|
-| `pnpm dev` | Executa o agente em modo watch via `tsx` |
-| `pnpm select:projects` | Assistente interativo no terminal para listar e selecionar repositórios do catálogo |
-| `pnpm sync:projects` | Sincroniza projetos do GitHub automaticamente via topic `postie-target` |
-| `pnpm build` | Compila o projeto com `tsup` gerando bundle otimizado em `dist/` |
-| `pnpm start` | Executa o bundle de produção compilado (`node dist/main.js`) |
-| `pnpm typecheck` | Executa a verificação de tipos estritos do TypeScript (`tsc --noEmit`) |
-| `pnpm test` | Executa os testes unitários via `vitest run` |
-| `pnpm test:watch` | Executa testes de forma reativa durante o desenvolvimento |
+| `pnpm dev` | Runs the agent in watch mode via `tsx` |
+| `pnpm select:projects` | Interactive terminal wizard to browse and pick repositories for the catalog |
+| `pnpm sync:projects` | Synchronizes GitHub repositories automatically based on the `postie-target` topic |
+| `pnpm build` | Bundles the project with `tsup` into optimized ESM in `dist/` |
+| `pnpm start` | Executes the compiled production bundle (`node dist/main.js`) |
+| `pnpm typecheck` | Runs strict TypeScript type-checking (`tsc --noEmit`) |
+| `pnpm test` | Runs the Vitest test suite (`vitest run`) |
+| `pnpm test:watch` | Runs tests reactively during development |
 
 ---
 
-## 🤝 Contribuindo
+## 🤝 Contributing
 
-Contribuições são muito bem-vindas! Siga os passos abaixo:
+Contributions are welcome! Follow these steps:
 
-1. Faça um Fork do projeto (`https://github.com/tlsamaral/postie/fork`)
-2. Crie uma branch para sua funcionalidade (`git checkout -b feature/minha-feature`)
-3. Commit suas alterações (`git commit -m 'feat: adiciona novo adaptador Jira'`)
-4. Faça o Push para a branch (`git push origin feature/minha-feature`)
-5. Abra um Pull Request detalhado
+1. Fork the project (`https://github.com/tlsamaral/postie/fork`)
+2. Create a feature branch (`git checkout -b feature/my-feature`)
+3. Commit your changes (`git commit -m 'feat: add new feature'`)
+4. Push to the branch (`git push origin feature/my-feature`)
+5. Open a detailed Pull Request
 
 ---
 
-## 📄 Licença
+## 📄 License
 
-Distribuído sob a licença **ISC**. Consulte `LICENSE` para mais detalhes.
+Distributed under the **ISC** License. See `LICENSE` for details.
