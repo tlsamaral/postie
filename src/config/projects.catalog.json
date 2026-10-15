@@ -1,15 +1,51 @@
 [
   {
-    "id": "postie-core",
-    "name": "Postie Core",
-    "description": "Serviço de triagem de tickets, automação de chamados e suporte técnico.",
+    "id": "unisal-servicosocial",
+    "name": "unisal.servicosocial",
+    "description": "Repositório unisal.servicosocial",
     "scopeBoundaries": [
-      "Pertence: bugs, erros 500, falhas de sincronização, dúvidas técnicas, melhorias.",
-      "Não pertence: assuntos comerciais, propostas financeiras, spam, marketing."
+      "Pertence: Chamados, bugs, dúvidas e melhorias do serviço unisal.servicosocial.",
+      "Não pertence: Assuntos fora de escopo, marketing, propostas comerciais ou spam."
     ],
     "github": {
-      "owner": "unisaldev",
-      "repo": "postie"
+      "owner": "dev-unisal",
+      "repo": "unisal.servicosocial"
+    },
+    "allowedActions": [
+      "create_issue",
+      "update_priority",
+      "comment"
+    ]
+  },
+  {
+    "id": "unisal-siga",
+    "name": "unisal.siga",
+    "description": "SIGA UNISAL é um sistema de gestão de filas de atendimento desenvolvido para o Centro Universitário Salesiano de São Paulo, permitindo emissão de senhas, gerenciamento de atendimentos por guichê, painel eletrônico em tempo real e métricas de desempenho por filial e atendente.",
+    "scopeBoundaries": [
+      "Pertence: Chamados, bugs, dúvidas e melhorias do serviço unisal.siga.",
+      "Não pertence: Assuntos fora de escopo, marketing, propostas comerciais ou spam."
+    ],
+    "github": {
+      "owner": "dev-unisal",
+      "repo": "unisal.siga"
+    },
+    "allowedActions": [
+      "create_issue",
+      "update_priority",
+      "comment"
+    ]
+  },
+  {
+    "id": "unisal-ouvidoria",
+    "name": "unisal.ouvidoria",
+    "description": "This project is a digital ombudsman portal developed for UNISAL, aiming to provide students with an accessible platform to submit suggestions, compliments, complaints, and other types of feedback. The system promotes open communication between the academic community and the institution, fostering continuous improvement through active listening.",
+    "scopeBoundaries": [
+      "Pertence: Chamados, bugs, dúvidas e melhorias do serviço unisal.ouvidoria.",
+      "Não pertence: Assuntos fora de escopo, marketing, propostas comerciais ou spam."
+    ],
+    "github": {
+      "owner": "dev-unisal",
+      "repo": "unisal.ouvidoria"
     },
     "allowedActions": [
       "create_issue",

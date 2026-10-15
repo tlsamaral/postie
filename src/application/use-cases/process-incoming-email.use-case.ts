@@ -71,10 +71,11 @@ export class ProcessIncomingEmailUseCase {
         const subjectPrefix = isUpdate ? '[Ocorrência Adicional]' : '[Novo Ticket]'
         const cardUrl = syncResult.url || '#'
 
-        await this.emailSender.sendEmail({
-          to: [this.options.alertNotificationEmail],
-          subject: `${subjectPrefix} [${project.name}] ${decision.ticketTitle}`,
-          htmlBody: `
+        try {
+          await this.emailSender.sendEmail({
+            to: [this.options.alertNotificationEmail],
+            subject: `${subjectPrefix} [${project.name}] ${decision.ticketTitle}`,
+            htmlBody: `
             <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #222; line-height: 1.5;">
               <h2 style="color: #0366d6;">
                 ${isUpdate ? '🔁 Ocorrência Repetida Identificada' : '🎫 Novo Ticket Classificado por IA'}
@@ -92,7 +93,10 @@ ${decision.ticketMarkdownBody}
               </div>
             </div>
           `,
-        })
+          })
+        } catch (sendErr: any) {
+          console.warn(`[Notifier] Falha ao enviar email de notificação (${sendErr?.message || sendErr}). Verifique se o app tem permissão Mail.Send no Azure.`)
+        }
 
         console.info(
           `[Triage] Email processado com sucesso [ID: ${email.id}]. Ação tracker: ${syncResult.action}, Issue: ${syncResult.issueId}`
