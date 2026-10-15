@@ -136,4 +136,33 @@ describe('DeduplicateAndSyncIssueUseCase', () => {
     expect(result.action).toBe('skipped_guardrail')
     expect(mockTracker.updateIssue).not.toHaveBeenCalled()
   })
+
+  it('should detect duplicates across natural language title variations', async () => {
+    const existingIssue: ExistingIssueSummary = {
+      id: 4,
+      title: 'Totem SIGA: Erro na emissão de senhas prioritárias da Secretaria Acadêmica',
+      body: 'Desc',
+      currentOccurrences: 1,
+      currentPriority: 'HIGH',
+      url: 'https://github.com/issue/4',
+    }
+
+    const mockTracker: IIssueTrackerPort = {
+      findOpenIssues: vi.fn().mockResolvedValue([existingIssue]),
+      createIssue: vi.fn(),
+      updateIssue: vi.fn().mockResolvedValue(undefined),
+    }
+
+    const useCase = new DeduplicateAndSyncIssueUseCase(mockTracker)
+    const variationDecision: RoutingDecision = {
+      ...decision,
+      ticketTitle: 'Falha na emissão de senhas prioritárias nos totens de autoatendimento do SIGA',
+    }
+
+    const result = await useCase.execute(mockProject, variationDecision, sampleEmail)
+    expect(result.action).toBe('updated')
+    expect(result.issueId).toBe(4)
+    expect(result.occurrences).toBe(2)
+  })
 })
+

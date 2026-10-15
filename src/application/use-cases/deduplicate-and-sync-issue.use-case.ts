@@ -35,6 +35,9 @@ export class DeduplicateAndSyncIssueUseCase {
   /**
    * Matches candidate issue by title token similarity.
    */
+  /**
+   * Matches candidate issue by title token similarity and keyword overlap.
+   */
   private findMatchingIssue(
     targetTitle: string,
     existingIssues: ExistingIssueSummary[]
@@ -52,28 +55,57 @@ export class DeduplicateAndSyncIssueUseCase {
       if (issueTokens.size === 0) continue
 
       const score = this.calculateJaccardSimilarity(targetTokens, issueTokens)
+      const sharedCount = this.countSharedTokens(targetTokens, issueTokens)
 
-      // Se similaridade de tokens for >= 0.50 ou um for substring normalizada do outro
       const normalizedTarget = targetTitle.toLowerCase().trim()
       const normalizedIssue = issue.title.toLowerCase().trim()
       const isSubstring =
         normalizedTarget.includes(normalizedIssue) || normalizedIssue.includes(normalizedTarget)
 
-      if (score >= 0.5 || (isSubstring && normalizedTarget.length > 8 && normalizedIssue.length > 8)) {
-        if (score > highestScore || isSubstring) {
-          highestScore = Math.max(score, isSubstring ? 0.7 : score)
+      // Match se:
+      // 1. Similaridade Jaccard >= 0.30
+      // 2. Ou compartilha 3 ou mais termos chave (ex: totem, senha, emissao)
+      // 3. Ou um título é substring do outro
+      const isMatch =
+        score >= 0.3 ||
+        sharedCount >= 3 ||
+        (isSubstring && normalizedTarget.length > 8 && normalizedIssue.length > 8)
+
+      if (isMatch) {
+        const compositeScore = Math.max(score, sharedCount * 0.15, isSubstring ? 0.7 : 0)
+        if (compositeScore > highestScore) {
+          highestScore = compositeScore
           bestMatch = issue
         }
       }
     }
 
-    return highestScore >= 0.5 ? bestMatch : null
+    return bestMatch
+  }
+
+  private countSharedTokens(setA: Set<string>, setB: Set<string>): number {
+    let count = 0
+    for (const item of setA) {
+      if (setB.has(item)) count++
+    }
+    return count
+  }
+
+  private stem(word: string): string {
+    let w = word
+    if (w.endsWith('ens')) return w.slice(0, -3) + 'em'
+    if (w.endsWith('ais')) return w.slice(0, -3) + 'al'
+    if (w.endsWith('eis')) return w.slice(0, -3) + 'el'
+    if (w.endsWith('oes')) return w.slice(0, -3) + 'ao'
+    if (w.endsWith('s') && !w.endsWith('ss')) w = w.slice(0, -1)
+    return w
   }
 
   private tokenize(text: string): Set<string> {
     const stopwords = new Set([
       'de', 'a', 'o', 'que', 'e', 'do', 'da', 'em', 'um', 'para', 'com', 'nao', 'uma',
-      'os', 'no', 'se', 'na', 'por', 'mais', 'as', 'dos', 'como', 'mas', 'ao', 'ele',
+      'os', 'no', 'nos', 'na', 'nas', 'se', 'por', 'mais', 'as', 'dos', 'das', 'como', 'mas', 'ao', 'aos', 'ele',
+      'pelo', 'pela', 'pelos', 'pelas', 'qual', 'quais', 'sua', 'seu', 'suas', 'seus', 'este', 'esta', 'esse', 'essa',
       'the', 'is', 'at', 'which', 'on', 'in', 'a', 'an', 'and', 'or', 'for', 'with', 'to'
     ])
 
@@ -84,6 +116,7 @@ export class DeduplicateAndSyncIssueUseCase {
       .replace(/[^a-z0-9\s]/g, ' ')
       .split(/\s+/)
       .filter((w) => w.length > 2 && !stopwords.has(w))
+      .map((w) => this.stem(w))
 
     return new Set(words)
   }
