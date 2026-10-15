@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type, Schema } from '@google/genai'
-import { IAIRouterPort, RoutingDecision } from '../../domain/ports/ai-router.port.js'
+import { IAIRouterPort, RoutingDecision, DuplicateVerificationResult } from '../../domain/ports/ai-router.port.js'
 import { RawEmailMessage } from '../../domain/ports/email-reader.port.js'
 import { ProjectDefinition } from '../../domain/entities/project-definition.entity.js'
 
@@ -165,5 +165,67 @@ ${email.bodyText.trim() || '(Sem texto no corpo do email)'}
       ticketMarkdownBody: parsed.ticketMarkdownBody || email.bodyText,
       suggestedPriority,
     }
+  }
+
+  async verifyDuplicate(
+    newTicket: { title: string; description: string },
+    existingIssue: { id: string | number; title: string; body: string }
+  ): Promise<DuplicateVerificationResult> {
+    const prompt = `Você é um Engenheiro de Software Sênior especialista em triagem de incidentes.
+Avalie se o Novo Chamado trata do MESMO defeito técnico/incidente que o Chamado Existente (mesma falha/causa-raiz), ou se são problemas técnicos DIFERENTES que devem ter issues separadas.
+
+### Chamado Existente (#${existingIssue.id}):
+- Título: "${existingIssue.title}"
+- Descrição:
+"""
+${existingIssue.body.slice(0, 1500)}
+"""
+
+### Novo Chamado:
+- Título: "${newTicket.title}"
+- Descrição:
+"""
+${newTicket.description.slice(0, 1500)}
+"""
+
+### Regras de Decisão:
+1. isDuplicate = true: Apenas se os dois chamados relatarem exatamente a MESMA falha técnica, mesmo defeito no software ou mesma interrupção de serviço (reincidência do mesmo bug).
+2. isDuplicate = false: Se forem problemas técnicos distintos, componentes diferentes, causas-raiz diferentes ou solicitações separadas, MESMO QUE pertençam ao mesmo módulo ou sistema.
+
+Retorne JSON com:
+- isDuplicate: boolean (true se for a mesma falha técnica; false se forem problemas distintos)
+- reasoning: string (justificativa técnica concisa)`
+
+    try {
+      const response = await this.ai.models.generateContent({
+        model: this.modelName,
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              isDuplicate: { type: Type.BOOLEAN },
+              reasoning: { type: Type.STRING },
+            },
+            required: ['isDuplicate', 'reasoning'],
+          },
+          temperature: 0.1,
+        },
+      })
+
+      const raw = response.text?.trim()
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        return {
+          isDuplicate: Boolean(parsed.isDuplicate),
+          reasoning: parsed.reasoning || '',
+        }
+      }
+    } catch (err) {
+      console.warn('[GeminiRouter] Falha na verificação semântica de duplicidade, mantendo decisão léxica:', err)
+    }
+
+    return { isDuplicate: true, reasoning: 'Fallback para similaridade de termos' }
   }
 }

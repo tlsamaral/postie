@@ -21,7 +21,8 @@ export class ProcessIncomingEmailUseCase {
     private readonly options: ProcessIncomingEmailOptions,
     deduplicateUseCase?: DeduplicateAndSyncIssueUseCase
   ) {
-    this.deduplicateUseCase = deduplicateUseCase ?? new DeduplicateAndSyncIssueUseCase(issueTracker)
+    this.deduplicateUseCase =
+      deduplicateUseCase ?? new DeduplicateAndSyncIssueUseCase(issueTracker, aiRouter)
   }
 
   async execute(): Promise<{ processedCount: number }> {

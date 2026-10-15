@@ -1,5 +1,5 @@
 import { ProjectDefinition } from '../../domain/entities/project-definition.entity.js'
-import { RoutingDecision } from '../../domain/entities/routing-decision.entity.js'
+import { RoutingDecision, IAIRouterPort } from '../../domain/ports/ai-router.port.js'
 import { RawEmailMessage } from '../../domain/ports/email-reader.port.js'
 import { IIssueTrackerPort, ExistingIssueSummary } from '../../domain/ports/issue-tracker.port.js'
 import { PriorityEngine } from '../../domain/logic/priority-engine.js'
@@ -14,7 +14,10 @@ export interface SyncIssueResult {
 }
 
 export class DeduplicateAndSyncIssueUseCase {
-  constructor(private readonly issueTracker: IIssueTrackerPort) {}
+  constructor(
+    private readonly issueTracker: IIssueTrackerPort,
+    private readonly aiRouter?: IAIRouterPort
+  ) {}
 
   public async execute(
     project: ProjectDefinition,
@@ -23,7 +26,7 @@ export class DeduplicateAndSyncIssueUseCase {
   ): Promise<SyncIssueResult> {
     const openIssues = await this.issueTracker.findOpenIssues(project.id)
 
-    const matchingIssue = this.findMatchingIssue(decision.ticketTitle, openIssues)
+    const matchingIssue = await this.findMatchingIssue(decision, openIssues, project)
 
     if (matchingIssue) {
       return this.handleDuplicateIssue(project, decision, email, matchingIssue)
@@ -33,54 +36,101 @@ export class DeduplicateAndSyncIssueUseCase {
   }
 
   /**
-   * Matches candidate issue by title token similarity.
+   * Matches candidate issue by title token similarity and verifies semantically with AI.
    */
-  /**
-   * Matches candidate issue by title token similarity and keyword overlap.
-   */
-  private findMatchingIssue(
-    targetTitle: string,
-    existingIssues: ExistingIssueSummary[]
-  ): ExistingIssueSummary | null {
+  private async findMatchingIssue(
+    decision: RoutingDecision,
+    existingIssues: ExistingIssueSummary[],
+    project: ProjectDefinition
+  ): Promise<ExistingIssueSummary | null> {
     if (!existingIssues || existingIssues.length === 0) return null
 
-    const targetTokens = this.tokenize(targetTitle)
+    // Stopwords de domínio: remove palavras do nome/repo do projeto (ex: "servico", "social", "unisal")
+    const domainStopwords = this.extractDomainStopwords(project)
+
+    const targetTokens = this.tokenize(decision.ticketTitle, domainStopwords)
     if (targetTokens.size === 0) return null
 
-    let bestMatch: ExistingIssueSummary | null = null
+    let candidateIssue: ExistingIssueSummary | null = null
     let highestScore = 0
 
     for (const issue of existingIssues) {
-      const issueTokens = this.tokenize(issue.title)
+      const issueTokens = this.tokenize(issue.title, domainStopwords)
       if (issueTokens.size === 0) continue
 
       const score = this.calculateJaccardSimilarity(targetTokens, issueTokens)
       const sharedCount = this.countSharedTokens(targetTokens, issueTokens)
 
-      const normalizedTarget = targetTitle.toLowerCase().trim()
+      const normalizedTarget = decision.ticketTitle.toLowerCase().trim()
       const normalizedIssue = issue.title.toLowerCase().trim()
       const isSubstring =
         normalizedTarget.includes(normalizedIssue) || normalizedIssue.includes(normalizedTarget)
 
-      // Match se:
-      // 1. Similaridade Jaccard >= 0.30
-      // 2. Ou compartilha 3 ou mais termos chave (ex: totem, senha, emissao)
-      // 3. Ou um título é substring do outro
-      const isMatch =
-        score >= 0.3 ||
-        sharedCount >= 3 ||
+      // Candidato se houver sobreposição real de termos do sintoma/problema
+      const isCandidate =
+        score >= 0.25 ||
+        sharedCount >= 2 ||
         (isSubstring && normalizedTarget.length > 8 && normalizedIssue.length > 8)
 
-      if (isMatch) {
-        const compositeScore = Math.max(score, sharedCount * 0.15, isSubstring ? 0.7 : 0)
+      if (isCandidate) {
+        const compositeScore = Math.max(score, sharedCount * 0.2, isSubstring ? 0.7 : 0)
         if (compositeScore > highestScore) {
           highestScore = compositeScore
-          bestMatch = issue
+          candidateIssue = issue
         }
       }
     }
 
-    return bestMatch
+    if (!candidateIssue) {
+      return null
+    }
+
+    // Se temos a IA disponível para validação semântica, confirmamos se é a mesma falha técnica
+    if (this.aiRouter?.verifyDuplicate) {
+      console.info(
+        `[Deduplication] Candidato léxico encontrado (Issue #${candidateIssue.id}: "${candidateIssue.title}"). Verificando semanticamente com a IA...`
+      )
+      const verifyRes = await this.aiRouter.verifyDuplicate(
+        {
+          title: decision.ticketTitle,
+          description: decision.ticketMarkdownBody,
+        },
+        candidateIssue
+      )
+
+      if (!verifyRes.isDuplicate) {
+        console.info(
+          `[Deduplication] IA determinou que os chamados tratam de problemas técnicos distintos. Criando nova issue separada. Justificativa: ${verifyRes.reasoning}`
+        )
+        return null
+      }
+
+      console.info(
+        `[Deduplication] IA confirmou reincidência técnica na Issue #${candidateIssue.id}: ${verifyRes.reasoning}`
+      )
+    }
+
+    return candidateIssue
+  }
+
+  private extractDomainStopwords(project: ProjectDefinition): Set<string> {
+    const rawTerms = [
+      project.id,
+      project.name,
+      project.github.repo,
+      project.github.owner,
+    ].join(' ')
+
+    const terms = rawTerms
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9\s]/g, ' ')
+      .split(/\s+/)
+      .filter((w) => w.length > 2)
+      .map((w) => this.stem(w))
+
+    return new Set(terms)
   }
 
   private countSharedTokens(setA: Set<string>, setB: Set<string>): number {
@@ -101,7 +151,7 @@ export class DeduplicateAndSyncIssueUseCase {
     return w
   }
 
-  private tokenize(text: string): Set<string> {
+  private tokenize(text: string, extraStopwords?: Set<string>): Set<string> {
     const stopwords = new Set([
       'de', 'a', 'o', 'que', 'e', 'do', 'da', 'em', 'um', 'para', 'com', 'nao', 'uma',
       'os', 'no', 'nos', 'na', 'nas', 'se', 'por', 'mais', 'as', 'dos', 'das', 'como', 'mas', 'ao', 'aos', 'ele',
@@ -115,7 +165,7 @@ export class DeduplicateAndSyncIssueUseCase {
       .replace(/[\u0300-\u036f]/g, '')
       .replace(/[^a-z0-9\s]/g, ' ')
       .split(/\s+/)
-      .filter((w) => w.length > 2 && !stopwords.has(w))
+      .filter((w) => w.length > 2 && !stopwords.has(w) && (!extraStopwords || !extraStopwords.has(w)))
       .map((w) => this.stem(w))
 
     return new Set(words)

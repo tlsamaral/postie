@@ -164,5 +164,44 @@ describe('DeduplicateAndSyncIssueUseCase', () => {
     expect(result.issueId).toBe(4)
     expect(result.occurrences).toBe(2)
   })
+
+  it('should create separate issue when AI determines problems are technically different despite keyword similarity', async () => {
+    const existingIssue: ExistingIssueSummary = {
+      id: 5,
+      title: 'Falha na inscrição de bolsa: erro ao anexar comprovante',
+      body: 'Erro interno ao processar upload de PDF de comprovante de renda',
+      currentOccurrences: 1,
+      currentPriority: 'HIGH',
+      url: 'https://github.com/issue/5',
+    }
+
+    const mockTracker: IIssueTrackerPort = {
+      findOpenIssues: vi.fn().mockResolvedValue([existingIssue]),
+      createIssue: vi.fn().mockResolvedValue({ id: 6, url: 'https://github.com/issue/6' }),
+      updateIssue: vi.fn(),
+    }
+
+    const mockAIRouter = {
+      classifyAndRoute: vi.fn(),
+      verifyDuplicate: vi.fn().mockResolvedValue({
+        isDuplicate: false,
+        reasoning: 'Problema de matrícula é diferente de erro de upload de PDF',
+      }),
+    }
+
+    const useCase = new DeduplicateAndSyncIssueUseCase(mockTracker, mockAIRouter)
+    const newProblemDecision: RoutingDecision = {
+      ...decision,
+      ticketTitle: 'Falha na inscrição de bolsa: não reconhece matrícula de aluno',
+      ticketMarkdownBody: 'O sistema não reconhece a matrícula do aluno para renovação.',
+    }
+
+    const result = await useCase.execute(mockProject, newProblemDecision, sampleEmail)
+    expect(result.action).toBe('created')
+    expect(result.issueId).toBe(6)
+    expect(mockAIRouter.verifyDuplicate).toHaveBeenCalled()
+    expect(mockTracker.createIssue).toHaveBeenCalled()
+    expect(mockTracker.updateIssue).not.toHaveBeenCalled()
+  })
 })
 
