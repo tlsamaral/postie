@@ -51,10 +51,18 @@ ${email.bodyText.trim() || '(Sem texto no corpo do email)'}
 ### Regras de Avaliação:
 1. Se o email não pertencer estritamente a nenhum projeto (ex: spam, notificações automáticas, propaganda ou assunto fora de escopo), matchedProjectId DEVE ser null.
 2. Seja conservador com o nível de confiança (0.0 a 1.0).
-3. Categoria DEVE ser: BUG, FEATURE_REQUEST, QUESTION ou SPAM.
-4. Sugira a prioridade inicial: LOW, MEDIUM, HIGH ou CRITICAL (use CRITICAL somente para paradas totais de serviço/sistemas fora do ar).
+3. Categoria DEVE ser: BUG, FEATURE_REQUEST, QUESTION ou SPAM:
+   - **QUESTION (Dúvida / Suporte Operacional):** Use para problemas pontuais de credenciais ou login de um único usuário (ex: "erro de login e senha", "esqueci a senha", "usuário não consegue logar"), dúvidas de uso ou pedidos de permissão individual.
+   - **BUG (Defeito no Sistema):** Use APENAS quando houver evidência de falha no código/sistema (ex: erro 500, exceções, crashes, botão que não responde, tela branca, totem travado) ou quando houver relatos de múltiplos usuários afetados.
+   - **FEATURE_REQUEST:** Pedidos de novas funcionalidades ou alterações de regras de negócio.
+   - **SPAM:** Propagandas, phishing ou newsletters irrelevantes.
+4. Sugira a prioridade inicial com base no impacto real:
+   - **LOW:** Problemas isolados de um único usuário (ex: erro de login/senha individual, dúvida simples).
+   - **MEDIUM:** Falha em recurso secundário que não impede o fluxo principal ou tem contorno fácil.
+   - **HIGH:** Falha em serviço crítico que afeta múltiplos usuários (ex: totens de fila, emissão de boletos, inscrições de bolsas).
+   - **CRITICAL:** Parada total do sistema / indisponibilidade geral do serviço.
 5. Escreva um título claro e objetivo para o ticket.
-6. Escreva uma descrição limpa em Markdown para a issue, formatando contexto, descrição do problema, impactos e passos/evidências mencionadas.`
+6. Escreva uma descrição limpa em Markdown para a issue, formatando contexto, descrição do problema, impactos e passos/evidências mencionadas (incluindo o que foi visto nas imagens/prints anexados se houver).`
 
     const responseSchema: Schema = {
       type: Type.OBJECT,
@@ -102,9 +110,25 @@ ${email.bodyText.trim() || '(Sem texto no corpo do email)'}
       ],
     }
 
+    // Suporte Multimodal: Adiciona o prompt de texto e quaisquer prints/imagens anexadas
+    const contents: any[] = [{ text: prompt }]
+
+    if (email.attachments && email.attachments.length > 0) {
+      for (const att of email.attachments) {
+        if (att.contentType.startsWith('image/')) {
+          contents.push({
+            inlineData: {
+              mimeType: att.contentType,
+              data: att.contentBase64,
+            },
+          })
+        }
+      }
+    }
+
     const response = await this.ai.models.generateContent({
       model: this.modelName,
-      contents: prompt,
+      contents,
       config: {
         responseMimeType: 'application/json',
         responseSchema,

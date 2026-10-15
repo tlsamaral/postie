@@ -44,13 +44,38 @@ export class MSGraphEmailAdapter implements IEmailReaderPort {
       .get()
 
     const rawMessages: any[] = response.value || []
+    const messages: RawEmailMessage[] = []
 
-    return rawMessages.map((msg) => {
+    for (const msg of rawMessages) {
       const isHtml = msg.body?.contentType?.toLowerCase() === 'html'
       const content = msg.body?.content || ''
       const bodyText = isHtml ? this.stripHtml(content) : content
 
-      return {
+      const attachments: { name: string; contentType: string; contentBase64: string }[] = []
+
+      if (msg.hasAttachments) {
+        try {
+          const attRes = await this.client
+            .api(`/users/${this.mailboxUser}/messages/${msg.id}/attachments`)
+            .get()
+
+          const attList = attRes.value || []
+          for (const a of attList) {
+            // Suporta anexos de arquivo de imagem (prints, screenshots)
+            if (a.contentBytes && a.contentType && a.contentType.toLowerCase().startsWith('image/')) {
+              attachments.push({
+                name: a.name || 'screenshot.png',
+                contentType: a.contentType.toLowerCase(),
+                contentBase64: a.contentBytes,
+              })
+            }
+          }
+        } catch (attErr) {
+          console.warn(`[MSGraph] Não foi possível baixar anexos da mensagem ${msg.id}:`, attErr)
+        }
+      }
+
+      messages.push({
         id: msg.id,
         subject: msg.subject || '(Sem Assunto)',
         from: {
@@ -60,9 +85,12 @@ export class MSGraphEmailAdapter implements IEmailReaderPort {
         receivedAt: new Date(msg.receivedDateTime || Date.now()),
         bodyText,
         bodyHtml: isHtml ? content : undefined,
-        attachmentsCount: msg.hasAttachments ? 1 : 0,
-      }
-    })
+        attachmentsCount: msg.hasAttachments ? attachments.length || 1 : 0,
+        attachments,
+      })
+    }
+
+    return messages
   }
 
   async markAsProcessed(messageId: string): Promise<void> {

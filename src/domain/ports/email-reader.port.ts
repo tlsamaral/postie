@@ -1,3 +1,9 @@
+export interface EmailAttachment {
+  name: string
+  contentType: string
+  contentBase64: string
+}
+
 export interface RawEmailMessage {
   id: string
   subject: string
@@ -6,6 +12,7 @@ export interface RawEmailMessage {
   bodyText: string
   bodyHtml?: string
   attachmentsCount: number
+  attachments?: EmailAttachment[]
 }
 
 export interface IEmailReaderPort {
