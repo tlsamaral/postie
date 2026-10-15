@@ -53,8 +53,8 @@ Retorne OBRIGATORIAMENTE um JSON válido com os campos:
 - confidence: number (0.0 a 1.0)
 - reasoning: string (justificativa clara)
 - category: "BUG" | "FEATURE_REQUEST" | "QUESTION" | "SPAM"
-- ticketTitle: string (título limpo e objetivo)
-- ticketMarkdownBody: string (descrição estruturada em Markdown)
+- ticketTitle: string (título limpo e objetivo, sem prefixos Fwd/Enc)
+- ticketMarkdownBody: string (descrição estruturada em Markdown, focando na sugestão ou relato original caso o email seja encaminhado)
 - suggestedPriority: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL"`
 
     const response = await this.client.chat.completions.create({

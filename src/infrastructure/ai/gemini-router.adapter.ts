@@ -61,8 +61,9 @@ ${email.bodyText.trim() || '(Sem texto no corpo do email)'}
    - **MEDIUM:** Falha em recurso secundário que não impede o fluxo principal ou tem contorno fácil.
    - **HIGH:** Falha em serviço crítico que afeta múltiplos usuários (ex: totens de fila, emissão de boletos, inscrições de bolsas).
    - **CRITICAL:** Parada total do sistema / indisponibilidade geral do serviço.
-5. Escreva um título claro e objetivo para o ticket.
-6. Escreva uma descrição limpa em Markdown para a issue, formatando contexto, descrição do problema, impactos e passos/evidências mencionadas (incluindo o que foi visto nas imagens/prints anexados se houver).`
+5. Escreva um título claro e objetivo para o ticket (remova prefixos como "Fwd:", "Enc:", "RES:", etc.).
+6. Escreva uma descrição limpa em Markdown para a issue, formatando contexto, descrição do problema, impactos e passos/evidências mencionadas (incluindo o que foi visto nas imagens/prints anexados se houver).
+7. **Emails Encaminhados (Fwd / Enc):** Se o email for encaminhado, ignore cabeçalhos de encaminhamento e foque na mensagem/sugestão original contida no corpo. Identifique o remetente original no Contexto se houver essa informação.`
 
     const responseSchema: Schema = {
       type: Type.OBJECT,
