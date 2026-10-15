@@ -40,6 +40,7 @@ export function loadProjectsCatalog(): ProjectDefinition[] {
     const __filename = fileURLToPath(import.meta.url)
     const __dirname = path.dirname(__filename)
     const jsonPath = path.resolve(__dirname, 'projects.catalog.json')
+    const examplePath = path.resolve(__dirname, 'projects.catalog.example.json')
 
     if (fs.existsSync(jsonPath)) {
       const content = fs.readFileSync(jsonPath, 'utf-8')
@@ -48,8 +49,16 @@ export function loadProjectsCatalog(): ProjectDefinition[] {
         return parsed as ProjectDefinition[]
       }
     }
+
+    if (fs.existsSync(examplePath)) {
+      const content = fs.readFileSync(examplePath, 'utf-8')
+      const parsed = JSON.parse(content)
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed as ProjectDefinition[]
+      }
+    }
   } catch (error) {
-    console.warn('[ProjectsRegistry] Falha ao ler projects.catalog.json, usando catálogo padrão:', error)
+    console.warn('[ProjectsRegistry] Falha ao ler catálogo JSON, usando catálogo padrão:', error)
   }
 
   return DEFAULT_PROJECTS_CATALOG

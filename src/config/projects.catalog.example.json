@@ -1,0 +1,37 @@
+[
+  {
+    "id": "portal-cliente",
+    "name": "Portal do Cliente",
+    "description": "Área logada onde clientes acompanham pedidos e faturas.",
+    "scopeBoundaries": [
+      "Pertence: problemas de login, segunda via de boleto, status de pedido.",
+      "Não pertence: dúvidas comerciais, negociação de preço, cancelamento de contrato."
+    ],
+    "github": {
+      "owner": "sua-organizacao",
+      "repo": "portal-cliente"
+    },
+    "allowedActions": [
+      "create_issue",
+      "update_priority",
+      "comment"
+    ]
+  },
+  {
+    "id": "servico-integracao",
+    "name": "Serviço de Integração",
+    "description": "Microsserviço de sincronização de webhooks e dados cadastrais.",
+    "scopeBoundaries": [
+      "Pertence: falhas de webhook, sincronia de registros, erros 500 no processamento.",
+      "Não pertence: solicitações manuais de cadastro ou dúvidas comerciais."
+    ],
+    "github": {
+      "owner": "sua-organizacao",
+      "repo": "servico-integracao"
+    },
+    "allowedActions": [
+      "create_issue",
+      "comment"
+    ]
+  }
+]

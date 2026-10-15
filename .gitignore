@@ -1,6 +1,7 @@
 node_modules
 dist
 .env
+src/config/projects.catalog.json
 *.log
 coverage
 .DS_Store

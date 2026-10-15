@@ -100,10 +100,10 @@ flowchart TB
 ```bash
 postie/
 ├── src/
-│   ├── config/                      # Environment variables and configurations
-│   │   ├── env.ts                   # Zod schema validation for .env
-│   │   ├── projects.catalog.json    # Dynamic catalog of monitored projects
-│   │   └── projects.registry.ts     # Loader and fallback registry
+│   ├── config/                           # Environment variables and configurations
+│   │   ├── env.ts                        # Zod schema validation for .env
+│   │   ├── projects.catalog.example.json # Catalog configuration template
+│   │   └── projects.registry.ts          # Loader and fallback registry
 │   ├── domain/                      # Domain layer (pure business logic)
 │   │   ├── entities/                # Core domain entities
 │   │   │   ├── email-message.entity.ts
@@ -130,7 +130,6 @@ postie/
 │   ├── select-projects.ts           # Interactive terminal project picker
 │   └── sync-projects.ts             # Topic-based auto-discovery script
 ├── .github/
-│   ├── workflows/sync-projects.yml  # Automated GitHub Action project sync
 │   └── postie.example.json          # Target repository configuration template
 ├── tests/                           # Unit tests with Vitest
 ├── docker-compose.yml

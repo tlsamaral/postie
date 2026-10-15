@@ -100,38 +100,37 @@ flowchart TB
 ```bash
 postie/
 ├── src/
-│   ├── config/                      # Configurações e variáveis de ambiente
-│   │   ├── env.ts                   # Validação Zod de schema do .env
-│   │   ├── projects.catalog.json    # Catálogo dinâmico de projetos monitorados
-│   │   └── projects.registry.ts     # Loader e fallback de guardrails de projetos
-│   ├── domain/                      # Camada de Domínio (independente de libs externas)
-│   │   ├── entities/                # Entidades fundamentais
+│   ├── config/                           # Configurações e variáveis de ambiente
+│   │   ├── env.ts                        # Validação Zod de schema do .env
+│   │   ├── projects.catalog.example.json # Modelo de configuração de projetos
+│   │   └── projects.registry.ts          # Loader e fallback de guardrails de projetos
+│   ├── domain/                           # Camada de Domínio (independente de libs externas)
+│   │   ├── entities/                     # Entidades fundamentais
 │   │   │   ├── email-message.entity.ts
 │   │   │   ├── project-definition.entity.ts
 │   │   │   └── routing-decision.entity.ts
-│   │   ├── logic/                   # Regras de negócio puras
-│   │   │   └── priority-engine.ts   # Motor de escalonamento dinâmico
-│   │   └── ports/                   # Contratos de interfaces (Ports)
+│   │   ├── logic/                        # Regras de negócio puras
+│   │   │   └── priority-engine.ts        # Motor de escalonamento dinâmico
+│   │   └── ports/                        # Contratos de interfaces (Ports)
 │   │       ├── email-reader.port.ts
 │   │       ├── email-sender.port.ts
 │   │       ├── ai-router.port.ts
 │   │       └── issue-tracker.port.ts
-│   ├── application/                 # Casos de Uso (Orquestração da aplicação)
+│   ├── application/                      # Casos de Uso (Orquestração da aplicação)
 │   │   └── use-cases/
 │   │       ├── process-incoming-email.use-case.ts
 │   │       └── deduplicate-and-sync-issue.use-case.ts
-│   ├── infrastructure/              # Adaptadores externos (Driven Adapters)
-│   │   ├── email/                   # Leitores de Email (MS Graph e IMAP)
-│   │   ├── ai/                      # Roteadores de IA (Gemini e OpenAI)
-│   │   ├── tracker/                 # Issue Trackers (GitHub Octokit)
-│   │   └── notifications/           # Notificadores de Alerta
-│   └── main.ts                      # Composition Root e loop de polling
-├── scripts/                         # Ferramentas auxiliares e automações
-│   ├── select-projects.ts           # Assistente interativo para escolha de repositórios
-│   └── sync-projects.ts             # Sincronização por topic do GitHub para CI/CD
+│   ├── infrastructure/                   # Adaptadores externos (Driven Adapters)
+│   │   ├── email/                        # Leitores de Email (MS Graph e IMAP)
+│   │   ├── ai/                           # Roteadores de IA (Gemini e OpenAI)
+│   │   ├── tracker/                      # Issue Trackers (GitHub Octokit)
+│   │   └── notifications/                # Notificadores de Alerta
+│   └── main.ts                           # Composition Root e loop de polling
+├── scripts/                              # Ferramentas auxiliares e automações
+│   ├── select-projects.ts                # Assistente interativo para escolha de repositórios
+│   └── sync-projects.ts                  # Sincronização por topic do GitHub para CI/CD
 ├── .github/
-│   ├── workflows/sync-projects.yml  # Pipeline diária de autodescoberta de projetos
-│   └── postie.example.json          # Modelo de configuração para os repositórios alvo
+│   └── postie.example.json               # Modelo de configuração para os repositórios alvo
 ├── tests/                           # Suíte de testes unitários com Vitest
 ├── docker-compose.yml
 ├── Dockerfile
