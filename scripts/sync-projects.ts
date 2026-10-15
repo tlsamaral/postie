@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import { Octokit } from '@octokit/rest'
 import { execSync } from 'node:child_process'
 import fs from 'node:fs/promises'
