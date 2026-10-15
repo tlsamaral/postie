@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "start": "node dist/main.js",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "sync:projects": "tsx scripts/sync-projects.ts"
   },
   "keywords": [
     "ticket-router",

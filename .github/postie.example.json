@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "Portal do Cliente",
+  "description": "Área logada onde clientes acompanham pedidos e faturas.",
+  "scopeBoundaries": [
+    "Pertence: problemas de login, segunda via de boleto, status de pedido.",
+    "Não pertence: dúvidas comerciais, negociação de preço, cancelamento de contrato."
+  ],
+  "allowedActions": [
+    "create_issue",
+    "update_priority",
+    "comment"
+  ]
+}

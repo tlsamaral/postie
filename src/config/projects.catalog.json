@@ -1,0 +1,35 @@
+[
+  {
+    "id": "portal-cliente",
+    "name": "Portal do Cliente",
+    "description": "Área logada onde clientes acompanham pedidos e faturas.",
+    "scopeBoundaries": [
+      "Pertence: problemas de login, segunda via de boleto, status de pedido.",
+      "Não pertence: dúvidas comerciais, negociação de preço, cancelamento de contrato."
+    ],
+    "github": {
+      "owner": "minha-organizacao",
+      "repo": "portal-cliente"
+    },
+    "allowedActions": [
+      "create_issue",
+      "update_priority",
+      "comment"
+    ]
+  },
+  {
+    "id": "erp-integrador",
+    "name": "Integrador ERP",
+    "description": "Sincronização de pedidos, estoque e financeiro com o ERP.",
+    "scopeBoundaries": [
+      "Pertence: falhas de webhook, sincronia de boletos, divergência cadastral de clientes."
+    ],
+    "github": {
+      "owner": "minha-organizacao",
+      "repo": "erp-sync-service"
+    },
+    "allowedActions": [
+      "create_issue"
+    ]
+  }
+]
