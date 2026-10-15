@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  ticket-router-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ticket-router-agent
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - LOG_LEVEL=info
+      - EMAIL_PROVIDER=MS_GRAPH
+      - AZURE_TENANT_ID=${AZURE_TENANT_ID}
+      - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
+      - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
+      - MS_GRAPH_MAILBOX_USER=${MS_GRAPH_MAILBOX_USER}
+      - AI_PROVIDER=GEMINI
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GITHUB_AUTH_TOKEN=${GITHUB_AUTH_TOKEN}
+      - POLLING_INTERVAL_SECONDS=60
+      - ALERT_NOTIFICATION_EMAIL=${ALERT_NOTIFICATION_EMAIL}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
