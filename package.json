@@ -11,7 +11,8 @@
     "start": "node dist/main.js",
     "test": "vitest run",
     "test:watch": "vitest",
-    "sync:projects": "tsx scripts/sync-projects.ts"
+    "sync:projects": "tsx scripts/sync-projects.ts",
+    "select:projects": "tsx scripts/select-projects.ts"
   },
   "keywords": [
     "ticket-router",
@@ -36,6 +37,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@inquirer/prompts": "^8.7.3",
     "@types/mailparser": "^3.4.6",
     "@types/node": "^26.5.1",
     "tsup": "^8.5.1",

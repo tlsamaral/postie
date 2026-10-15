@@ -1,35 +1,20 @@
 [
   {
-    "id": "portal-cliente",
-    "name": "Portal do Cliente",
-    "description": "Área logada onde clientes acompanham pedidos e faturas.",
+    "id": "postie-core",
+    "name": "Postie Core",
+    "description": "Serviço de triagem de tickets, automação de chamados e suporte técnico.",
     "scopeBoundaries": [
-      "Pertence: problemas de login, segunda via de boleto, status de pedido.",
-      "Não pertence: dúvidas comerciais, negociação de preço, cancelamento de contrato."
+      "Pertence: bugs, erros 500, falhas de sincronização, dúvidas técnicas, melhorias.",
+      "Não pertence: assuntos comerciais, propostas financeiras, spam, marketing."
     ],
     "github": {
-      "owner": "minha-organizacao",
-      "repo": "portal-cliente"
+      "owner": "unisaldev",
+      "repo": "postie"
     },
     "allowedActions": [
       "create_issue",
       "update_priority",
       "comment"
-    ]
-  },
-  {
-    "id": "erp-integrador",
-    "name": "Integrador ERP",
-    "description": "Sincronização de pedidos, estoque e financeiro com o ERP.",
-    "scopeBoundaries": [
-      "Pertence: falhas de webhook, sincronia de boletos, divergência cadastral de clientes."
-    ],
-    "github": {
-      "owner": "minha-organizacao",
-      "repo": "erp-sync-service"
-    },
-    "allowedActions": [
-      "create_issue"
     ]
   }
 ]
