@@ -195,6 +195,10 @@ POLLING_INTERVAL_SECONDS=60
 ALERT_NOTIFICATION_EMAIL=dev-team@company.com
 ```
 
+> [!TIP]
+> **Need help setting up Microsoft 365 / Azure credentials?**  
+> Check Microsoft's guide on [how to register an application in Azure Entra ID / AD](https://learn.microsoft.com/en-us/azure/healthcare-apis/register-application) to get your `AZURE_TENANT_ID`, `AZURE_CLIENT_ID`, and generate a client secret (`AZURE_CLIENT_SECRET`). Make sure to grant Microsoft Graph Application permissions (such as `Mail.ReadWrite` and `Mail.Send`).
+
 ### 4. Select Target Projects
 Choose which repositories should receive tickets interactively:
 ```bash

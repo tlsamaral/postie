@@ -195,6 +195,10 @@ POLLING_INTERVAL_SECONDS=60
 ALERT_NOTIFICATION_EMAIL=equipe-dev@empresa.com
 ```
 
+> [!TIP]
+> **Precisa de ajuda para obter as credenciais do Microsoft 365 / Azure AD?**  
+> Consulte o guia oficial da Microsoft sobre [como registrar um aplicativo no Azure Entra ID / AD](https://learn.microsoft.com/en-us/azure/healthcare-apis/register-application) para obter o `AZURE_TENANT_ID`, `AZURE_CLIENT_ID` e gerar um segredo de cliente (`AZURE_CLIENT_SECRET`). Certifique-se de conceder as permissões de aplicativo do Microsoft Graph (como `Mail.ReadWrite` e `Mail.Send`).
+
 ### 4. Selecionar os Repositórios Alvo
 Você pode escolher os repositórios de forma interativa:
 ```bash
