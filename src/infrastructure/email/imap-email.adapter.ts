@@ -36,7 +36,6 @@ export class ImapEmailAdapter implements IEmailReaderPort {
     const messages: RawEmailMessage[] = []
 
     try {
-      // Busca mensagens não lidas
       const searchResult = await client.search({ seen: false })
       const uids = Array.isArray(searchResult) ? searchResult : []
 

@@ -111,7 +111,7 @@ ${email.bodyText.trim() || '(Sem texto no corpo do email)'}
       ],
     }
 
-    // Suporte Multimodal: Adiciona o prompt de texto e quaisquer prints/imagens anexadas
+    // Attach inline Base64 images for multimodal inspection alongside the text prompt
     const contents: any[] = [{ text: prompt }]
 
     if (email.attachments && email.attachments.length > 0) {

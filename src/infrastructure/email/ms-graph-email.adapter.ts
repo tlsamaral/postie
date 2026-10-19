@@ -61,7 +61,6 @@ export class MSGraphEmailAdapter implements IEmailReaderPort {
 
           const attList = attRes.value || []
           for (const a of attList) {
-            // Suporta anexos de arquivo de imagem (prints, screenshots)
             if (a.contentBytes && a.contentType && a.contentType.toLowerCase().startsWith('image/')) {
               attachments.push({
                 name: a.name || 'screenshot.png',

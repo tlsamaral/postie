@@ -84,7 +84,6 @@ async function main() {
       allowedActions: AllowedAction[]
     }> | null = null
 
-    // Tenta ler .github/postie.json ou postie.json
     for (const manifestPath of ['.github/postie.json', 'postie.json']) {
       try {
         const fileRes = await octokit.rest.repos.getContent({
@@ -100,7 +99,7 @@ async function main() {
           break
         }
       } catch {
-        // Arquivo não existe no repositório, continua com fallback padrão
+        // Optional per-repository manifest not present; fall back to repository metadata
       }
     }
 

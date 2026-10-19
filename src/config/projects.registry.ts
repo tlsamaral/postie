@@ -35,6 +35,12 @@ export const DEFAULT_PROJECTS_CATALOG: ProjectDefinition[] = [
   },
 ]
 
+/**
+ * Resolves the active project catalog with fallback precedence:
+ * 1. Local git-ignored `projects.catalog.json` (production/private targets)
+ * 2. Versioned `projects.catalog.example.json`
+ * 3. In-memory `DEFAULT_PROJECTS_CATALOG`
+ */
 export function loadProjectsCatalog(): ProjectDefinition[] {
   try {
     const __filename = fileURLToPath(import.meta.url)

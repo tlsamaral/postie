@@ -42,7 +42,6 @@ async function main() {
     console.warn('⚠️  Não foi possível identificar o usuário do token:', err)
   }
 
-  // Busca organizações vinculadas a esse token
   let orgs: string[] = []
   try {
     const orgsRes = await octokit.rest.orgs.listForAuthenticatedUser({ per_page: 50 })
@@ -51,14 +50,13 @@ async function main() {
       console.info(`🏢 Organizações com acesso detectadas: ${orgs.map((o) => `@${o}`).join(', ')}`)
     }
   } catch {
-    // Token pode ter escopo restrito a repositório
+    // Token may have repository-only scope without org listing permissions
   }
 
   console.info('📡 Buscando repositórios (pessoais e de organizações)...')
 
   const allReposMap = new Map<string, any>()
 
-  // 1. Busca repositórios do usuário autenticado
   try {
     const userRepos = await octokit.rest.repos.listForAuthenticatedUser({
       sort: 'updated',
@@ -72,7 +70,6 @@ async function main() {
     console.warn('⚠️  Aviso ao buscar repositórios do usuário:', e)
   }
 
-  // 2. Busca explicitamente os repositórios de cada organização detectada
   for (const org of orgs) {
     try {
       const orgRepos = await octokit.rest.repos.listForOrg({
@@ -84,7 +81,7 @@ async function main() {
         allReposMap.set(r.full_name, r)
       }
     } catch {
-      // Ignora erros de permissão em orgs específicas
+      // Skip organizations with restricted repository listing access
     }
   }
 
@@ -97,7 +94,6 @@ async function main() {
 
   console.info(`📦 Total de ${repos.length} repositório(s) disponível(is).\n`)
 
-  // Prepara lista para o checkbox interativo com owner destacado
   const choices = repos.map((repo) => ({
     name: `[${repo.owner.login}] ${repo.name}${repo.private ? ' 🔒 (privado)' : ' 🌐 (público)'} - ${repo.description || 'Sem descrição'}`,
     value: repo,
@@ -144,7 +140,7 @@ async function main() {
           break
         }
       } catch {
-        // Sem arquivo customizado
+        // Optional per-repository manifest not present; fall back to repository metadata
       }
     }
 
@@ -168,7 +164,6 @@ async function main() {
 
   const catalogPath = path.resolve(__dirname, '../src/config/projects.catalog.json')
 
-  // Salva no arquivo de catálogo
   await fs.writeFile(catalogPath, JSON.stringify(newProjects, null, 2), 'utf-8')
 
   console.info(`\n✅ Catálogo atualizado com sucesso em: ${catalogPath}`)

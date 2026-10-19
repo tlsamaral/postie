@@ -15,14 +15,10 @@ export interface RawEmailMessage {
   attachments?: EmailAttachment[]
 }
 
+/**
+ * Output Port for email ingestion and state acknowledgment across providers (MS Graph, IMAP).
+ */
 export interface IEmailReaderPort {
-  /**
-   * Busca mensagens não processadas na caixa de entrada
-   */
   fetchUnreadMessages(): Promise<RawEmailMessage[]>
-
-  /**
-   * Marca a mensagem como lida ou processada para evitar duplicidade
-   */
   markAsProcessed(messageId: string): Promise<void>
 }

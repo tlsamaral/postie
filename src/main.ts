@@ -67,6 +67,10 @@ function initializeAIRouter(): IAIRouterPort {
   throw new Error(`Provedor de IA não suportado: ${env.AI_PROVIDER}`)
 }
 
+/**
+ * Composition Root: wires driven infrastructure adapters into application use cases
+ * and manages the polling lifecycle.
+ */
 async function bootstrap() {
   console.info('🚀 Inicializando Ticket Router Agent...')
   console.info(`- Ambiente: ${env.NODE_ENV}`)
@@ -114,10 +118,8 @@ async function bootstrap() {
     }
   }
 
-  // Executa imediatamente o primeiro ciclo
   await runTriageCycle()
 
-  // Inicia o loop periódico
   const intervalId = setInterval(runTriageCycle, env.POLLING_INTERVAL_SECONDS * 1000)
 
   const shutdown = () => {

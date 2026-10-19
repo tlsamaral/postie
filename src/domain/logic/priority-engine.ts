@@ -47,11 +47,11 @@ export class PriorityEngine {
 
     let occurrenceRank = 1
     if (totalOccurrences >= 5) {
-      occurrenceRank = 4 // CRITICAL
+      occurrenceRank = 4
     } else if (totalOccurrences >= 3) {
-      occurrenceRank = 3 // HIGH
+      occurrenceRank = 3
     } else if (totalOccurrences >= 2) {
-      occurrenceRank = 2 // MEDIUM
+      occurrenceRank = 2
     }
 
     const finalRank = Math.min(4, Math.max(baseRank, occurrenceRank))

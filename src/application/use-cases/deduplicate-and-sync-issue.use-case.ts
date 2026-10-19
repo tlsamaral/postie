@@ -36,7 +36,9 @@ export class DeduplicateAndSyncIssueUseCase {
   }
 
   /**
-   * Matches candidate issue by title token similarity and verifies semantically with AI.
+   * Two-stage deduplication pipeline:
+   * 1. Domain-aware lexical pre-filter (Jaccard similarity excluding project-specific tokens)
+   * 2. Semantic root-cause verification via LLM to prevent false-positive clustering within the same module
    */
   private async findMatchingIssue(
     decision: RoutingDecision,
@@ -45,7 +47,6 @@ export class DeduplicateAndSyncIssueUseCase {
   ): Promise<ExistingIssueSummary | null> {
     if (!existingIssues || existingIssues.length === 0) return null
 
-    // Stopwords de domínio: remove palavras do nome/repo do projeto (ex: "servico", "social", "unisal")
     const domainStopwords = this.extractDomainStopwords(project)
 
     const targetTokens = this.tokenize(decision.ticketTitle, domainStopwords)
@@ -66,7 +67,6 @@ export class DeduplicateAndSyncIssueUseCase {
       const isSubstring =
         normalizedTarget.includes(normalizedIssue) || normalizedIssue.includes(normalizedTarget)
 
-      // Candidato se houver sobreposição real de termos do sintoma/problema
       const isCandidate =
         score >= 0.25 ||
         sharedCount >= 2 ||
@@ -85,7 +85,6 @@ export class DeduplicateAndSyncIssueUseCase {
       return null
     }
 
-    // Se temos a IA disponível para validação semântica, confirmamos se é a mesma falha técnica
     if (this.aiRouter?.verifyDuplicate) {
       console.info(
         `[Deduplication] Candidato léxico encontrado (Issue #${candidateIssue.id}: "${candidateIssue.title}"). Verificando semanticamente com a IA...`

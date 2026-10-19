@@ -40,7 +40,7 @@ export class GitHubTrackerAdapter implements IIssueTrackerPort {
     })
 
     return response.data
-      // Filtra Pull Requests caso venham na lista de issues do GitHub
+      // GitHub's issues endpoint returns both issues and pull requests; exclude PRs
       .filter((issue) => !issue.pull_request)
       .map((issue) => {
         const body = issue.body || ''
@@ -58,6 +58,10 @@ export class GitHubTrackerAdapter implements IIssueTrackerPort {
       })
   }
 
+  /**
+   * Persists triage state (occurrences and priority) inside an HTML comment in the issue body,
+   * keeping the agent stateless without requiring an external database.
+   */
   async createIssue(input: CreateIssueInput): Promise<{ id: string | number; url: string }> {
     const { owner, repo } = this.getProjectRepo(input.projectId)
 
@@ -95,7 +99,6 @@ export class GitHubTrackerAdapter implements IIssueTrackerPort {
     const { owner, repo } = this.getProjectRepo(input.projectId)
     const issueNumber = Number(input.issueId)
 
-    // 1. Cria comentário caso tenha sido fornecido
     if (input.comment && input.comment.trim().length > 0) {
       await this.octokit.rest.issues.createComment({
         owner,
@@ -105,7 +108,6 @@ export class GitHubTrackerAdapter implements IIssueTrackerPort {
       })
     }
 
-    // 2. Atualiza metadata e labels na issue caso prioridade ou ocorrências tenham mudado
     if (input.newOccurrences !== undefined || input.newPriority !== undefined) {
       const issueResp = await this.octokit.rest.issues.get({
         owner,
@@ -125,7 +127,6 @@ export class GitHubTrackerAdapter implements IIssueTrackerPort {
       )
 
       if (input.newPriority) {
-        // Remove label de prioridade anterior e adiciona nova
         updatedLabels = updatedLabels.filter(
           (label) => !label.toLowerCase().startsWith('priority:')
         )

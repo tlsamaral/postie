@@ -8,31 +8,25 @@ export const envSchema = z
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
     LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
 
-    // Configuração do Provedor de Email (Ativo)
     EMAIL_PROVIDER: z.enum(['MS_GRAPH', 'IMAP']).default('MS_GRAPH'),
 
-    // Microsoft 365 / Azure AD
     AZURE_TENANT_ID: z.string().optional(),
     AZURE_CLIENT_ID: z.string().optional(),
     AZURE_CLIENT_SECRET: z.string().optional(),
     MS_GRAPH_MAILBOX_USER: z.string().email('Email da caixa do M365 a monitorar').optional(),
 
-    // IMAP (quando EMAIL_PROVIDER = IMAP)
     IMAP_HOST: z.string().optional(),
     IMAP_PORT: z.coerce.number().default(993).optional(),
     IMAP_USER: z.string().optional(),
     IMAP_PASSWORD: z.string().optional(),
     IMAP_TLS: z.coerce.boolean().default(true).optional(),
 
-    // Configuração de IA
     AI_PROVIDER: z.enum(['GEMINI', 'OPENAI']).default('GEMINI'),
     GEMINI_API_KEY: z.string().optional(),
     OPENAI_API_KEY: z.string().optional(),
 
-    // GitHub
     GITHUB_AUTH_TOKEN: z.string().min(1, 'Token de autenticação do GitHub obrigatório'),
 
-    // Polling e Notificação
     POLLING_INTERVAL_SECONDS: z.coerce.number().min(5).default(60),
     ALERT_NOTIFICATION_EMAIL: z.string().email('Email que receberá as confirmações de novos tickets'),
   })
@@ -84,7 +78,7 @@ export function validateEnv(customEnv?: NodeJS.ProcessEnv): Env {
   return result.data
 }
 
-// Lazy/safe initialization for process.env
+// Defer strict process.env validation when imported inside unit test suites
 export const env: Env =
   process.env.NODE_ENV === 'test'
     ? ({} as unknown as Env)

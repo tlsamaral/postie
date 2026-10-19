@@ -9,6 +9,10 @@ export interface ProcessIncomingEmailOptions {
   alertNotificationEmail: string
 }
 
+/**
+ * Application Use Case: orchestrates the end-to-end triage pipeline
+ * across EmailReader, AIRouter, IssueTracker (via DeduplicateAndSyncIssueUseCase), and EmailSender ports.
+ */
 export class ProcessIncomingEmailUseCase {
   private readonly deduplicateUseCase: DeduplicateAndSyncIssueUseCase
 
@@ -35,7 +39,6 @@ export class ProcessIncomingEmailUseCase {
       try {
         console.info(`[Triage] Processando email [ID: ${email.id}] "${email.subject}" de ${email.from.address}`)
 
-        // 1. Roteia com a IA
         const decision = await this.aiRouter.classifyAndRoute(email, this.projectsCatalog)
 
         if (!decision.matchedProjectId) {
@@ -55,7 +58,6 @@ export class ProcessIncomingEmailUseCase {
           continue
         }
 
-        // 2. Deduplica e sincroniza no Issue Tracker com checagem de Guardrails
         const syncResult = await this.deduplicateUseCase.execute(project, decision, email)
 
         if (syncResult.action === 'skipped_guardrail') {
@@ -67,7 +69,6 @@ export class ProcessIncomingEmailUseCase {
           continue
         }
 
-        // 3. Notifica por email
         const isUpdate = syncResult.action === 'updated'
         const subjectPrefix = isUpdate ? '[Ocorrência Adicional]' : '[Novo Ticket]'
         const cardUrl = syncResult.url || '#'
@@ -106,7 +107,7 @@ ${decision.ticketMarkdownBody}
         processedCount++
       } catch (err) {
         console.error(`[Triage] Erro ao processar email ID ${email.id}:`, err)
-        // Não marcamos como lido para reprocessar ou inspecionar
+        // Leave message unread so transient failures can be retried on the next polling cycle
       }
     }
 
